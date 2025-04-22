@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "upgrade-assistant": {
+      "version": "0.5.829",
+      "commands": [
+        "upgrade-assistant"
+      ],
+      "rollForward": false
+    },
+    "dotnet-ef": {
+      "version": "9.0.4",
+      "commands": [
+        "dotnet-ef"
+      ],
+      "rollForward": false
+    },
+    "microsoft.openapi.kiota": {
+      "version": "1.25.1",
+      "commands": [
+        "kiota"
+      ],
+      "rollForward": false
+    }
+  }
+}

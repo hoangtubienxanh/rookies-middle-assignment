@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.SDK">
+    <ItemGroup>
+        <Script Include="tsconfig.json"/>
+    </ItemGroup>
+    <PropertyGroup>
+        <!-- https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference -->
+        <!-- Developer should invoke the command instead -->
+        <ShouldRunNpmInstall>false</ShouldRunNpmInstall>
+        <ShouldRunBuildScript>false</ShouldRunBuildScript>
+    </PropertyGroup>
+</Project>

@@ -1,0 +1,6 @@
+@Scire_HostAddress = http://localhost:5101
+
+GET {{Scire_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
