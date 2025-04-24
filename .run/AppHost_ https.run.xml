@@ -1,27 +1,28 @@
 ﻿<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="AppHost: https" type="AspireHostConfiguration" factoryName="Aspire Host" activateToolWindowBeforeRun="false">
-    <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/projects/AppHost/AppHost.csproj" />
-    <option name="PROJECT_TFM" value="net9.0" />
-    <option name="LAUNCH_PROFILE_NAME" value="http" />
-    <option name="TRACK_ARGUMENTS" value="1" />
-    <option name="ARGUMENTS" value="" />
-    <option name="TRACK_WORKING_DIRECTORY" value="1" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/projects/AppHost" />
-    <option name="TRACK_ENVS" value="1" />
+  <configuration default="false" name="AppHost: https" type="AspireHostConfiguration" factoryName="Aspire Host"
+                 activateToolWindowBeforeRun="false">
+    <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/projects/AppHost/AppHost.csproj"/>
+    <option name="PROJECT_TFM" value="net9.0"/>
+    <option name="LAUNCH_PROFILE_NAME" value="http"/>
+    <option name="TRACK_ARGUMENTS" value="1"/>
+    <option name="ARGUMENTS" value=""/>
+    <option name="TRACK_WORKING_DIRECTORY" value="1"/>
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/projects/AppHost"/>
+    <option name="TRACK_ENVS" value="1"/>
     <envs>
-      <env name="ASPNETCORE_ENVIRONMENT" value="Development" />
-      <env name="DOTNET_ENVIRONMENT" value="Development" />
-      <env name="ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL" value="http://localhost:19213" />
-      <env name="ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL" value="http://localhost:20111" />
-      <env name="DOTNET_LAUNCH_PROFILE" value="http" />
-      <env name="ASPNETCORE_URLS" value="http://localhost:15227" />
+      <env name="ASPNETCORE_ENVIRONMENT" value="Development"/>
+      <env name="DOTNET_ENVIRONMENT" value="Development"/>
+      <env name="ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL" value="http://localhost:19213"/>
+      <env name="ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL" value="http://localhost:20111"/>
+      <env name="DOTNET_LAUNCH_PROFILE" value="http"/>
+      <env name="ASPNETCORE_URLS" value="http://localhost:15227"/>
     </envs>
-    <option name="USE_PODMAN_RUNTIME" value="1" />
-    <option name="TRACK_URL" value="1" />
-    <option name="TRACK_BROWSER_LAUNCH" value="0" />
-    <browser url="http://localhost:15227" />
+    <option name="USE_PODMAN_RUNTIME" value="0"/>
+    <option name="TRACK_URL" value="1"/>
+    <option name="TRACK_BROWSER_LAUNCH" value="0"/>
+    <browser url="http://localhost:15227"/>
     <method v="2">
-      <option name="Build" />
+      <option name="Build"/>
     </method>
   </configuration>
 </component>

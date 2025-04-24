@@ -12,14 +12,15 @@
 
     <ItemGroup>
         <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.0"/>
-        <PackageReference Include="CommunityToolkit.Aspire.Hosting.NodeJS.Extensions" Version="9.4.0" />
-        <PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="9.4.0" />
-        <PackageReference Include="CommunityToolkit.Aspire.Hosting.Sqlite" Version="9.4.0" />
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.NodeJS.Extensions" Version="9.4.0"/>
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="9.4.0"/>
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.Sqlite" Version="9.4.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\web-ui\web-ui.esproj" />
-      <ProjectReference Include="..\Api\Api.csproj" />
+        <ProjectReference Include="..\ScribeDbManager\ScribeDbManager.csproj"/>
+        <ProjectReference Include="..\web-ui\web-ui.esproj"/>
+        <ProjectReference Include="..\Api\Api.csproj"/>
     </ItemGroup>
 
 </Project>

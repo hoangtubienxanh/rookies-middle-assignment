@@ -1,0 +1,52 @@
+## jetbrains/intellij-http-client
+@Api_HostAddress = http://localhost:5101
+
+### Register user
+POST {{Api_HostAddress}}/register
+Content-Type: application/json
+
+{
+  "email": "{{Email}}",
+  "password": "{{Password}}"
+}
+
+### Login with bearer token
+POST {{Api_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "email": "{{Email}}",
+  "password": "{{Password}}"
+}
+
+> {%
+    client.test("Response status should be 200", () => {
+        client.assert(response.status === 200);
+    });
+    
+    client.test("Response should not have Set-Cookie header", () => {
+        client.assert(!response.headers.hasOwnProperty("set-cookie"));
+    });
+    
+    client.test("Response should have correct token structure", () => {
+        client.assert(response.body.tokenType === "Bearer");
+        client.assert(response.body.expiresIn === 3600);
+        client.assert(response.body.hasOwnProperty("refreshToken"));
+    });
+    
+    client.global.set("access_token", response.body.accessToken);
+    client.global.set("refresh_token", response.body.refreshToken);
+%}
+
+### Refresh session
+POST {{Api_HostAddress}}/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refresh_token}}"
+}
+
+### Get current user. Use token to authorize
+GET {{Api_HostAddress}}/manage/info
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
