@@ -1,12 +1,10 @@
 ﻿using System.Reflection;
+using System.Security.Claims;
 
 using Api.Endpoints;
 
-using Microsoft.AspNetCore.Identity;
-
-using Scribe;
-using Scribe.AspNetCore.Identity.EntityFrameworkCore;
-using Scribe.AspNetCore.Identity.Extensions.Stores;
+using Scribe.EntityFrameworkCore;
+using Scribe.EntityFrameworkCore.Stores;
 
 namespace Api;
 
@@ -15,7 +13,12 @@ public static class Extensions
     public static TBuilder AddApplicationServices<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
-        builder.AddEndpointServices();
+        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        builder.Services.AddOpenApi();
+        builder.Services.AddCors();
+        builder.AddAuthServices();
+
+        builder.AddSqliteDbContext<ScribeContext>("scribe");
 
         // Customizing run-time behavior during build-time document generation
         // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi#customizing-run-time-behavior-during-build-time-document-generation
@@ -25,53 +28,36 @@ public static class Extensions
         }
 
         builder.AddServiceDefaults();
-        // builder.Services.AddHostedService<Worker>();
 
         return builder;
     }
 
-    private static TBuilder AddEndpointServices<TBuilder>(this TBuilder builder)
+    private static TBuilder AddAuthServices<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
-
-        builder.AddSqliteDbContext<ScribeContext>("scribe", configureDbContextOptions: dbContextOptionsBuilder =>
-        {
-            if (!builder.Environment.IsDevelopment())
+        builder.Services.AddIdentityApiEndpoints<ScribeUser>(identityOptions =>
             {
-                return;
-            }
-
-            dbContextOptionsBuilder.EnableDetailedErrors();
-            dbContextOptionsBuilder.EnableSensitiveDataLogging();
-        });
-
-        builder.Services
-            .AddIdentityApiEndpoints<User>(ConfigureIdentity)
+                identityOptions.Stores.ProtectPersonalData = false;
+            })
             .AddEntityFrameworkStores<ScribeContext>();
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy("all_access", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireClaim(ClaimTypes.Role, "administrator");
+            });
 
         return builder;
-    }
-
-    private static void ConfigureIdentity(IdentityOptions identityOptions)
-    {
-        identityOptions.Password.RequiredLength = 5;
-        identityOptions.Password.RequireDigit = false;
-        identityOptions.Password.RequireNonAlphanumeric = false;
-        identityOptions.Password.RequireUppercase = false;
-        identityOptions.Password.RequireLowercase = false;
     }
 
 
     public static WebApplication MapApplicationEndpoints(this WebApplication app)
     {
         app.UseRouting();
-// app.UseRateLimiter();
-// app.UseRequestLocalization();
-// app.UseCors();
+        // app.UseRateLimiter();
+        app.UseRequestLocalization();
+        app.UseCors(corsBuilder => corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
         app.UseAuthentication();
         app.UseAuthorization();
@@ -82,7 +68,14 @@ public static class Extensions
         }
 
         app.MapDefaultEndpoints();
-        app.MapIdentityEndpoint<User>();
+
+        app.MapGroup("/identity")
+            .MapLoanApi()
+            .MapIdentityApi<ScribeUser>();
+
+        app.MapBookEndpoints();
+        app.MapCategoryEndpoints();
+        app.MapLoanApi();
 
         return app;
     }

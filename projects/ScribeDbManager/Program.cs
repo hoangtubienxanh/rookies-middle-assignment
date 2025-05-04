@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-using Scribe;
+using Scribe.EntityFrameworkCore;
 
 using ScribeDbManager;
 
@@ -22,18 +22,18 @@ builder.AddSqliteDbContext<ScribeContext>("scribe", configureDbContextOptions: d
 });
 
 builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing.AddSource(ScribeDbInitializer.ActivitySourceName));
+    .WithTracing(tracing => tracing.AddSource(DbInitializer.ActivitySourceName));
 
-builder.Services.AddSingleton<ScribeDbInitializer>();
-builder.Services.AddHostedService(sp => sp.GetRequiredService<ScribeDbInitializer>());
-builder.Services.AddHealthChecks().AddCheck<ScribeDbInitializerHealthCheck>("DbInitializer");
+builder.Services.AddSingleton<DbInitializer>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<DbInitializer>());
+builder.Services.AddHealthChecks().AddCheck<DbInitializerHealthCheck>("DbInitializer");
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapPost("/reset-db",
-        async (ScribeContext dbContext, ScribeDbInitializer dbInitializer,
+        async (ScribeContext dbContext, DbInitializer dbInitializer,
             CancellationToken cancellationToken) =>
         {
             // Delete and recreate the database. This is useful for development scenarios to reset the database to its initial state.

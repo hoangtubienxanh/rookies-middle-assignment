@@ -1,5 +1,5 @@
 ## jetbrains/intellij-http-client
-@Api_HostAddress = http://localhost:5101
+@Api_HostAddress = http://localhost:5101/identity
 
 ### Register user
 POST {{Api_HostAddress}}/register

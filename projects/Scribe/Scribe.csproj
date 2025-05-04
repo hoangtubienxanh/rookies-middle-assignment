@@ -7,16 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="CommunityToolkit.Aspire.Microsoft.EntityFrameworkCore.Sqlite" Version="9.4.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.4"/>
         <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.4"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Data\EntityConfigurations\"/>
-        <Folder Include="Data\Models\"/>
     </ItemGroup>
 </Project>

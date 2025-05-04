@@ -2,7 +2,7 @@
 
 namespace ScribeDbManager;
 
-internal class ScribeDbInitializerHealthCheck(ScribeDbInitializer dbInitializer) : IHealthCheck
+internal class DbInitializerHealthCheck(DbInitializer dbInitializer) : IHealthCheck
 {
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context,
         CancellationToken cancellationToken = default)
