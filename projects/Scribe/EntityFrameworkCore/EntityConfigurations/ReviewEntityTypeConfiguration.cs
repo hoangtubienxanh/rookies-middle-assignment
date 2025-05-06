@@ -28,5 +28,10 @@ public class ReviewEntityTypeConfiguration : IEntityTypeConfiguration<Review>
             .IsRequired();
 
         builder.HasIndex(r => new { r.BookId, r.UserId }).IsUnique();
+
+        builder.HasOne<Book>()
+            .WithMany()
+            .HasForeignKey(r => r.BookId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

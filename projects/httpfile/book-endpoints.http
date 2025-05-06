@@ -1,0 +1,33 @@
+## jetbrains/intellij-http-client
+@Api_HostAddress = http://localhost:5101/books
+
+### Get all books
+GET {{Api_HostAddress}}/
+
+### Get book by ID
+GET {{Api_HostAddress}}/{{BookId}}
+
+### Create book
+POST {{Api_HostAddress}}/
+Content-Type: application/json
+
+{
+  "title": "{{$random.book.title}}",
+  "author": "{{$random.book.author}}",
+  "inputQuantity": 0,
+  "categoryId": "{{CategoryId}}"
+}
+
+### Update book
+PUT {{Api_HostAddress}}/{{BookId}}
+Content-Type: application/json
+
+{
+  "title": "{{$random.book.title}}",
+  "author": "{{$random.book.author}}",
+  "inputQuantity": 1,
+  "categoryId": "{{CategoryId}}"
+}
+
+### Delete book
+DELETE {{Api_HostAddress}}/{{BookId}}

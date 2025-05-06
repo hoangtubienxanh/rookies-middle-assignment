@@ -11,8 +11,8 @@ using Scribe.EntityFrameworkCore;
 namespace ScribeDbManager.Migrations
 {
     [DbContext(typeof(ScribeContext))]
-    [Migration("20250501115823_Initial")]
-    partial class Initial
+    [Migration("20250506094419_Public_DbSet_ApplicationItems")]
+    partial class Public_DbSet_ApplicationItems
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -82,14 +82,32 @@ namespace ScribeDbManager.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.ApplicationItem", b =>
+                {
+                    b.Property<Guid>("ApplicationItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("LoanApplicationId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ApplicationItemId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("LoanApplicationId");
+
+                    b.ToTable("ApplicationItems");
+                });
+
             modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.Book", b =>
                 {
                     b.Property<Guid>("BookId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("Archived")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Author")
                         .IsRequired()
@@ -105,9 +123,6 @@ namespace ScribeDbManager.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(-1)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("Version")
                         .HasColumnType("TEXT");
 
                     b.HasKey("BookId");
@@ -146,44 +161,99 @@ namespace ScribeDbManager.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("ApplicantId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("DueDate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("LoanApplicationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("LoanDate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("ReturnDate")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("LoanId");
+
+                    b.HasIndex("ApplicantId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("LoanApplicationId");
+
+                    b.ToTable("Loans");
+                });
+
+            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.LoanApplication", b =>
+                {
+                    b.Property<Guid>("LoanApplicationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid?>("ActorId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("BorrowerId")
+                    b.Property<Guid>("ApplicantId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("ProcessingDate")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("ApplicationDate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("DecisionDate")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("SubmissionDate")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("LoanId");
+                    b.HasKey("LoanApplicationId");
 
                     b.HasIndex("ActorId");
 
-                    b.HasIndex("BorrowerId");
+                    b.HasIndex("ApplicantId");
 
-                    b.ToTable("Loans");
+                    b.ToTable("LoanApplications");
                 });
 
-            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.LoansToBooksJoinTable", b =>
+            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.Review", b =>
                 {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("BookId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("LoanId")
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
-                    b.HasKey("BookId", "LoanId");
+                    b.Property<bool>("Recommended")
+                        .HasColumnType("INTEGER");
 
-                    b.HasIndex("LoanId");
+                    b.Property<DateTimeOffset>("ReviewDate")
+                        .HasColumnType("TEXT");
 
-                    b.ToTable("LoansToBooksJoinTable");
+                    b.Property<Guid?>("ScribeUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScribeUserId");
+
+                    b.HasIndex("BookId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.ScribeUser", b =>
@@ -278,6 +348,23 @@ namespace ScribeDbManager.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.ApplicationItem", b =>
+                {
+                    b.HasOne("Scribe.EntityFrameworkCore.Stores.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Scribe.EntityFrameworkCore.Stores.LoanApplication", null)
+                        .WithMany()
+                        .HasForeignKey("LoanApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+                });
+
             modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.Book", b =>
                 {
                     b.HasOne("Scribe.EntityFrameworkCore.Stores.Category", "Category")
@@ -290,6 +377,33 @@ namespace ScribeDbManager.Migrations
 
             modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.Loan", b =>
                 {
+                    b.HasOne("Scribe.EntityFrameworkCore.Stores.ScribeUser", "Applicant")
+                        .WithMany("Loans")
+                        .HasForeignKey("ApplicantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Scribe.EntityFrameworkCore.Stores.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Scribe.EntityFrameworkCore.Stores.LoanApplication", "LoanApplication")
+                        .WithMany("LendingItems")
+                        .HasForeignKey("LoanApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Applicant");
+
+                    b.Navigation("Book");
+
+                    b.Navigation("LoanApplication");
+                });
+
+            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.LoanApplication", b =>
+                {
                     b.HasOne("Scribe.EntityFrameworkCore.Stores.ScribeUser", null)
                         .WithMany()
                         .HasForeignKey("ActorId")
@@ -297,24 +411,34 @@ namespace ScribeDbManager.Migrations
 
                     b.HasOne("Scribe.EntityFrameworkCore.Stores.ScribeUser", null)
                         .WithMany()
-                        .HasForeignKey("BorrowerId")
+                        .HasForeignKey("ApplicantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.LoansToBooksJoinTable", b =>
+            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.Review", b =>
                 {
                     b.HasOne("Scribe.EntityFrameworkCore.Stores.Book", null)
                         .WithMany()
                         .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Scribe.EntityFrameworkCore.Stores.Loan", null)
-                        .WithMany()
-                        .HasForeignKey("LoanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("Scribe.EntityFrameworkCore.Stores.ScribeUser", null)
+                        .WithMany("Reviews")
+                        .HasForeignKey("ScribeUserId");
+                });
+
+            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.LoanApplication", b =>
+                {
+                    b.Navigation("LendingItems");
+                });
+
+            modelBuilder.Entity("Scribe.EntityFrameworkCore.Stores.ScribeUser", b =>
+                {
+                    b.Navigation("Loans");
+
+                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

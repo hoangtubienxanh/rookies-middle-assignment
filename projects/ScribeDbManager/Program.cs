@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Scribe.EntityFrameworkCore;
+using Scribe.EntityFrameworkCore.Stores;
 
 using ScribeDbManager;
 
@@ -23,6 +24,12 @@ builder.AddSqliteDbContext<ScribeContext>("scribe", configureDbContextOptions: d
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddSource(DbInitializer.ActivitySourceName));
+
+builder.Services.AddIdentityCore<ScribeUser>(identityOptions =>
+    {
+        identityOptions.Stores.ProtectPersonalData = false;
+    })
+    .AddEntityFrameworkStores<ScribeContext>();
 
 builder.Services.AddSingleton<DbInitializer>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<DbInitializer>());

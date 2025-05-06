@@ -1,0 +1,40 @@
+## jetbrains/intellij-http-client
+@Api_HostAddress = http://localhost:5101/loan
+
+### Login with cookie scheme. User account
+POST http://localhost:5101/identity/login?useCookies=true
+Content-Type: application/json
+
+{
+  "email": "{{AdminEmail}}",
+  "password": "{{AdminPassword}}"
+}
+
+### Get loan application by ID
+GET {{Api_HostAddress}}/{{LoanApplicationId}}
+
+### Create loan application
+POST {{Api_HostAddress}}/
+Content-Type: application/json
+
+{
+  "items": [
+    "{{BookId}}"
+  ]
+}
+
+### Approve loan application
+PUT {{Api_HostAddress}}/{{LoanApplicationId}}
+Content-Type: application/json
+
+{
+  "status": "Approved"
+}
+
+### Reject loan application
+PUT {{Api_HostAddress}}/{{LoanApplicationId}}
+Content-Type: application/json
+
+{
+  "status": "Rejected"
+}

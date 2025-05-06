@@ -1,4 +1,4 @@
-﻿namespace Scribe.Models;
+﻿namespace Api.Models;
 
 public class PaginatedItems<TEntity>(int pageIndex, int pageSize, long count, IEnumerable<TEntity> data)
     where TEntity : class

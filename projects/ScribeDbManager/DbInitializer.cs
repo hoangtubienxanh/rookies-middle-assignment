@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.Options;
 
 using Scribe.EntityFrameworkCore;
 using Scribe.EntityFrameworkCore.Stores;
@@ -40,7 +40,6 @@ internal class DbInitializer(IServiceProvider serviceProvider, ILogger<DbInitial
         await strategy.ExecuteAsync(dbContext.Database.MigrateAsync, cancellationToken);
 
         await SeedAsync(dbContext, cancellationToken);
-        await BootstrapAdminIdentity(dbContext, cancellationToken);
 
         logger.LogInformation("Database initialization completed after {ElapsedMilliseconds}ms",
             sw.ElapsedMilliseconds);
@@ -49,23 +48,62 @@ internal class DbInitializer(IServiceProvider serviceProvider, ILogger<DbInitial
     private async Task SeedAsync(ScribeContext dbContext, CancellationToken cancellationToken)
     {
         logger.LogInformation("Seeding database");
-    }
 
-    public async Task BootstrapAdminIdentity(ScribeContext dbContext, CancellationToken cancellationToken)
-    {
-        logger.LogInformation("Seeding admin user");
+        if (!dbContext.Categories.Any())
+        {
+            dbContext.Categories.AddRange(
+                new Category { Name = "Fiction", Slug = "fiction" },
+                new Category { Name = "Non-Fiction", Slug = "non-fiction" });
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
 
-        var sp = dbContext.GetInfrastructure().GetRequiredService<IServiceProvider>();
-        var userManager = sp.GetRequiredService<UserManager<ScribeUser>>();
-        var lockoutManager = sp.GetRequiredService<IUserLockoutStore<ScribeUser>>();
-        var timeBeforeLockout =
-            sp.GetRequiredService<IOptions<SecurityStampValidatorOptions>>().Value.ValidationInterval;
+        if (!dbContext.Books.Any())
+        {
+            dbContext.Books.AddRange(
+                new Book
+                {
+                    Title = "Book 1",
+                    Author = "Author 1",
+                    Quantity = 10,
+                    CategoryId = dbContext.Categories.First().CategoryId
+                },
+                new Book
+                {
+                    Title = "Book 2",
+                    Author = "Author 2",
+                    Quantity = 5,
+                    CategoryId = dbContext.Categories.First().CategoryId
+                },
+                new Book
+                {
+                    Title = "Book 3",
+                    Author = "Author 3",
+                    Quantity = 1,
+                    CategoryId = dbContext.Categories.First().CategoryId
+                });
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
 
-        var user = new ScribeUser();
-        await userManager.CreateAsync(user, "$$$myVery0wnPassword");
-        await userManager.AddToRoleAsync(user, "SUPER");
+        var userOnlyStore = new UserOnlyStore<ScribeUser, ScribeContext, Guid>(dbContext);
+        var passwordHasher = new PasswordHasher<ScribeUser>();
+        var userManager =
+            new UserManager<ScribeUser>(userOnlyStore, null, passwordHasher, null, null, null, null, null, null);
 
-        await lockoutManager.SetLockoutEnabledAsync(user, true, cancellationToken);
-        await lockoutManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue, cancellationToken);
+        if (!dbContext.Users.Any(u => u.UserName == "admin@scribe.app.local"))
+        {
+            var adminUser = new ScribeUser
+            {
+                UserName = "admin@scribe.app.local", Email = "admin@scribe.app.local", EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(adminUser, "$$$myVery0wnPassword");
+            if (result.Succeeded)
+            {
+                await userManager.AddClaimAsync(adminUser, new Claim(ClaimTypes.Role, "administrator"));
+            }
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Database seeding completed");
     }
 }

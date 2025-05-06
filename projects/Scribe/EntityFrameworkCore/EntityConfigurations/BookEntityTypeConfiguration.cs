@@ -7,8 +7,6 @@ namespace Scribe.EntityFrameworkCore.EntityConfigurations;
 
 public class BookEntityTypeConfiguration : IEntityTypeConfiguration<Book>
 {
-    // private const string BorrowCountComputedCommandText = "";
-
     public void Configure(EntityTypeBuilder<Book> builder)
     {
         builder.HasKey(b => b.BookId);
@@ -24,13 +22,11 @@ public class BookEntityTypeConfiguration : IEntityTypeConfiguration<Book>
         builder.Property(b => b.Quantity)
             .IsRequired();
 
-        builder.Ignore(b => b.BorrowedQuantity);
-        // .HasComputedColumnSql(BorrowCountComputedCommandText, stored: false);
-
-        builder
-            .HasOne(e => e.Category)
+        builder.HasOne(b => b.Category)
             .WithMany()
-            .HasForeignKey(e => e.CategoryId)
+            .HasForeignKey(b => b.CategoryId)
             .IsRequired(false);
+
+        builder.Ignore(b => b.LendingQuantity);
     }
 }

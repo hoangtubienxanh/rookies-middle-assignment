@@ -1,80 +1,103 @@
+using Api.Models;
+using Api.Models.Book;
+using Api.Services;
+
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 using Scribe.EntityFrameworkCore;
-using Scribe.Models;
-using Scribe.Services;
 
 namespace Api.Endpoints;
 
 public static class BookEndpoint
 {
-    public static void MapBookEndpoints(this IEndpointRouteBuilder routes)
+    public static RouteGroupBuilder MapBookEndpoints(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/book");
-        var linkGenerator = routes.ServiceProvider.GetRequiredService<LinkGenerator>();
-        var getBookByIdUrl = linkGenerator.GetPathByName("GetBookById");
+        var group = routes.MapGroup("/books");
+
+        var authorizedGroup = group.MapGroup("")
+            .RequireAuthorization("all_access");
 
         group.MapGet("/", GetAllBooks)
-            .WithName("GetAllBooks");
+            .WithName("GetAllBooks")
+            .WithParameterValidation();
 
-        group.MapGet("/{id}", GetBookById)
+        group.MapGet("/{id:guid}", GetBookById)
             .WithName("GetBookById");
 
-        group.MapPut("/{id}", UpdateBook)
-            .WithName("UpdateBook");
+        authorizedGroup.MapPut("/{id:guid}", UpdateBook)
+            .WithName("UpdateBook")
+            .WithParameterValidation();
 
-        group.MapPost("/", async Task<Created<Book>> (CreateBookRequest request, [FromServices] IBookManager manager) =>
-            {
-                var entity = await manager.CreateAsync(request.ToEntity());
-                return TypedResults.Created($"{getBookByIdUrl}/{entity.BookId}", entity.ToView());
-            })
-            .WithName("CreateBook");
+        authorizedGroup.MapPost("/", CreateBook)
+            .WithName("CreateBook")
+            .WithParameterValidation();
 
-        group.MapDelete("/{id:guid}", DeleteBook)
+        authorizedGroup.MapDelete("/{id:guid}", DeleteBook)
             .WithName("DeleteBook");
+
+        return group;
     }
 
-    private static async Task<Ok<PaginatedItems<Book>>> GetAllBooks([FromQuery] BookQueryFilter filter,
-        [FromServices] IBookQueries query)
-    {
-        var books = await query.GetAllBooksAsync(filter);
-        return TypedResults.Ok(books);
-    }
-
-    private static async Task<Results<Ok<Book>, NotFound>> GetBookById(Guid id, [FromServices] IBookQueries query)
-    {
-        var book = await query.GetBookAsync(id);
-        return book is null ? TypedResults.NotFound() : TypedResults.Ok(book);
-    }
-
-    private static async Task<Results<Ok, NotFound>> UpdateBook(Guid id,
-        [FromBody] UpdateBookRequest request,
-        [FromServices] ScribeContext db,
+    public static async Task<Ok<PaginatedItems<BookItem>>> GetAllBooks(
+        [FromBody] BookListOptions options,
         [FromServices] IBookManager manager)
     {
-        var entity = await db.Books.FindAsync(id);
-        if (entity is null)
-        {
-            return TypedResults.NotFound();
-        }
-
-        await manager.UpdateAsync(entity, request.ToEntity());
-        return TypedResults.Ok();
+        var bookItems = await manager.GetAllBooksAsync(options);
+        return TypedResults.Ok(bookItems);
     }
 
-    private static async Task<Results<Ok, NotFound>> DeleteBook(
+    public static async Task<Results<Ok<BookItem>, NotFound<ProblemDetails>>> GetBookById(
+        [FromRoute] Guid id,
+        [FromServices] IBookManager manager)
+    {
+        var bookItem = await manager.GetBookAsync(id);
+        return bookItem is null ? CreateNotFoundProblemDetail(id) : TypedResults.Ok(bookItem);
+    }
+
+    public static async Task<Results<Ok<BookItem>, NotFound<ProblemDetails>>> UpdateBook(
+        [FromRoute] Guid id,
+        [FromBody] BookUpdateOptions options,
+        [FromServices] TimeProvider timeProvider,
+        [FromServices] ScribeContext context,
+        [FromServices] IBookManager manager)
+    {
+        var book = await context.Books.SingleOrDefaultAsync(b => b.BookId == id);
+        if (book is null)
+        {
+            return CreateNotFoundProblemDetail(id);
+        }
+
+        await manager.UpdateAsync(book, options);
+        return TypedResults.Ok(book.AsBookItem());
+    }
+
+
+    public static async Task<Ok<BookItem>> CreateBook(BookCreateOptions options,
+        [FromServices] IBookManager manager)
+    {
+        var book = await manager.CreateAsync(options);
+        return TypedResults.Ok(book.AsBookItem());
+    }
+
+    public static async Task<Results<Ok, NotFound<ProblemDetails>>> DeleteBook(
         Guid id,
-        [FromServices] ScribeContext db,
+        [FromServices] ScribeContext context,
         [FromServices] IBookManager manager)
     {
-        var entity = await db.Books.FindAsync(id);
-        if (entity is null)
+        var book = await context.Books.SingleOrDefaultAsync(b => b.BookId == id);
+        if (book is null)
         {
-            return TypedResults.NotFound();
+            return CreateNotFoundProblemDetail(id);
         }
 
-        await manager.SetBookArchivedAsync(entity);
+        await manager.DeleteAsync(book);
         return TypedResults.Ok();
+    }
+
+    private static NotFound<ProblemDetails> CreateNotFoundProblemDetail(Guid id)
+    {
+        return TypedResults.NotFound(new ProblemDetails { Detail = $"Item with id {id} not found." });
     }
 }

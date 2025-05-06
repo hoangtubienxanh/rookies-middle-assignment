@@ -1,12 +1,13 @@
-﻿using Api.Services;
+﻿using Api.Models;
+using Api.Models.Loan;
+using Api.Services;
 
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using Scribe.EntityFrameworkCore;
-using Scribe.Models;
-using Scribe.Services;
+using Scribe.EntityFrameworkCore.Stores;
 
 namespace Api.Endpoints;
 
@@ -17,54 +18,96 @@ public static class LoanEndpoint
         var group = routes.MapGroup("/loan")
             .RequireAuthorization();
 
-        var linkGenerator = routes.ServiceProvider.GetRequiredService<LinkGenerator>();
-        var getLoanById = linkGenerator.GetPathByName("GetLoanById");
-
-        group.MapGet("/{id:guid}", GetLoan)
-            .WithName("GetLoanById");
-
-        group.MapPost("/", async Task<Results<Created<Loan>, ValidationProblem>> (CreateLoanRequest request,
-                [FromServices] CurrentUser me,
-                [FromServices] ILoanManager manager,
-                [FromServices] ScribeContext db) =>
-            {
-                Dictionary<string, string[]> errors = [];
-
-                if (request.LoanItemOptions.Count == 0)
-                {
-                    errors.TryAdd("items", ["At least one book must be selected to loan."]);
-                    return TypedResults.ValidationProblem(errors);
-                }
-
-                var books = await db.Books.Where(b => request.LoanItemOptions.Contains(b.BookId)).ToListAsync();
-
-                if (books.Count != request.LoanItemOptions.Count)
-                {
-                    errors.TryAdd("items", ["One or more books are not available to loan."]);
-                    return TypedResults.ValidationProblem(errors);
-                }
-
-                var entity = await manager.CreateAsync(me.Id, request.ToEntity());
-                await manager.AddLoanItemsAsync(entity, books);
-                return TypedResults.Created($"{getLoanById}/{entity.LoanId}", entity.ToView());
-            })
-            .WithName("CreateLoan");
-
-        group.MapPost("/{id:guid}/item/{item:guid}/extend", ExtendLoanItem);
-
-        var managementGroup = group.MapGroup("/authorized/loan")
+        var authorizedGroup = routes.MapGroup("/loan")
             .RequireAuthorization("all_access");
+
+        group.MapGet("/", GetAllLoanApplications)
+            .WithName("GetAllLoanApplications");
+        
+        group.MapGet("/{id:guid}", GetLoanApplicationById)
+            .RequireAuthorization("applicant_creator", "all_access")
+            .WithName("GetLoanApplicationById");
+
+        group.MapPost("/", CreateLoanApplication)
+            .WithName("CreateLoanApplication");
+
+        authorizedGroup.MapPut("/{id:guid}", UpdateLoanApplication)
+            .WithName("UpdateLoanApplication");
 
         return group;
     }
 
-    private static async Task<Results<Ok<Loan>, BadRequest>> ExtendLoanItem(Guid id, Guid itemId)
+    public static async Task<Results<Ok<LoanApplicationItem>, NotFound<ProblemDetails>>> GetLoanApplicationById(
+        [FromRoute] Guid id,
+        [FromServices] ScribeContext context)
     {
-        throw new NotImplementedException();
+        var loanApplication = await context.LoanApplications.SingleOrDefaultAsync(la => la.LoanApplicationId == id);
+        if (loanApplication is null)
+        {
+            return CreateNotFoundProblemDetail(id);
+        }
+
+        return TypedResults.Ok(loanApplication.AsLoanApplicationItem());
     }
 
-    private static async Task<Results<Ok<Loan>, ValidationProblem>> GetLoan(Guid id)
+    public static async Task<Results<Ok<LoanApplicationItem>, BadRequest<ProblemDetails>>> CreateLoanApplication(
+        [FromBody] LoanApplicationCreateOptions options,
+        [FromServices] CurrentUser me,
+        [FromServices] ScribeContext context,
+        [FromServices] ILoanApplicationManager applicationManager)
     {
-        throw new NotImplementedException();
+        var books = await context.Books.Where(b => options.Items.Contains(b.BookId)).ToListAsync();
+
+        if (books.Count != options.ValidatedItems.Count)
+        {
+            TypedResults.BadRequest(new ProblemDetails { Detail = "One or more item was not found." });
+        }
+
+        var loanApplication = await applicationManager.CreateAsync(me.Id, books);
+        return TypedResults.Ok(loanApplication.AsLoanApplicationItem());
+    }
+
+    public static async Task<Results<Ok<LoanApplicationItem>, NotFound<ProblemDetails>, BadRequest<ProblemDetails>>>
+        UpdateLoanApplication(
+            [FromBody] LoanApplicationUpdateOptions options,
+            [FromRoute] Guid id,
+            [FromServices] CurrentUser me,
+            [FromServices] ScribeContext context,
+            [FromServices] ILoanApplicationManager applicationManager)
+    {
+        var loanApplication = await context.LoanApplications.SingleOrDefaultAsync(la => la.LoanApplicationId == id);
+        if (loanApplication is null)
+        {
+            return CreateNotFoundProblemDetail(id);
+        }
+
+        _ = Enum.TryParse<LoanStatus>(options.Status, out var status);
+        switch (status)
+        {
+            case LoanStatus.Approved:
+                await applicationManager.ApproveAsync(me.Id, loanApplication);
+                break;
+            case LoanStatus.Denied:
+                await applicationManager.DenyAsync(me.Id, loanApplication);
+                break;
+            case LoanStatus.Open:
+            default:
+                throw new ArgumentOutOfRangeException(nameof(status));
+        }
+
+        return TypedResults.Ok(loanApplication.AsLoanApplicationItem());
+    }
+
+    public static async Task<Ok<PaginatedItems<LoanApplicationItem>>> GetAllLoanApplications(
+        [FromBody] LoanApplicationListOptions options,
+        [FromServices] ILoanApplicationManager loanManager)
+    {
+        var loans = await loanManager.GetAllAsync(options);
+        return TypedResults.Ok(loans);
+    }
+
+    private static NotFound<ProblemDetails> CreateNotFoundProblemDetail(Guid id)
+    {
+        return TypedResults.NotFound(new ProblemDetails { Detail = $"Item with id {id} not found." });
     }
 }

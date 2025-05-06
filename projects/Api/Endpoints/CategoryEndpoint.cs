@@ -1,69 +1,99 @@
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
+using Api.Models;
+using Api.Models.Category;
+using Api.Services;
 
-using Scribe.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+
 using Scribe.EntityFrameworkCore.Stores;
 
 namespace Api.Endpoints;
 
 public static class CategoryEndpoint
 {
-    public static void MapCategoryEndpoints(this IEndpointRouteBuilder routes)
+    public static RouteGroupBuilder MapCategoryEndpoints(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("/category");
-        group.RequireAuthorization("all_access");
+
+        var authorizedGroup = group.MapGroup("")
+            .RequireAuthorization("all_access");
 
         group.MapGet("/", GetAllCategories)
-            .WithName("GetAllCategories");
+            .WithName("GetAllCategories")
+            .WithParameterValidation();
 
-        group.MapGet("/{id}", GetCategoryById)
+        group.MapGet("/{id:guid}", GetCategoryById)
             .WithName("GetCategoryById");
 
-        group.MapPut("/{id}", UpdateCategory)
-            .WithName("UpdateCategory");
+        authorizedGroup.MapPut("/{id:guid}", UpdateCategory)
+            .WithName("UpdateCategory")
+            .WithParameterValidation();
 
-        group.MapPost("/", CreateCategory)
-            .WithName("CreateCategory");
+        authorizedGroup.MapPost("/", CreateCategory)
+            .WithName("CreateCategory")
+            .WithParameterValidation();
 
-        group.MapDelete("/{id}", DeleteCategory)
+        authorizedGroup.MapDelete("/{id:guid}", DeleteCategory)
             .WithName("DeleteCategory");
+
+        return group;
     }
 
-    private static async Task<Results<Ok, NotFound>> DeleteCategory(Guid categoryid, ScribeContext db)
+    public static async Task<Ok<PaginatedItems<Category>>> GetAllCategories(
+        [FromBody] CategoryListOptions options,
+        [FromServices] ICategoryManager categoryManager)
     {
-        var affected = await db.Categories.Where(model => model.CategoryId == categoryid)
-            .ExecuteDeleteAsync();
-        return affected == 1 ? TypedResults.Ok() : TypedResults.NotFound();
+        var categories = await categoryManager.GetAllAsync(options);
+        return TypedResults.Ok(categories);
     }
 
-
-    private static async Task<List<Category>> GetAllCategories(ScribeContext db)
+    public static async Task<Results<Ok<Category>, NotFound<ProblemDetails>>> GetCategoryById(
+        Guid id,
+        ICategoryManager categoryManager)
     {
-        return await db.Categories.ToListAsync();
+        var category = await categoryManager.GetByIdAsync(id);
+        return category != null ? TypedResults.Ok(category) : CreateNotFoundProblemDetail(id);
     }
 
-    private static async Task<Results<Ok<Category>, NotFound>> GetCategoryById(Guid categoryid, ScribeContext db)
+    public static async Task<IResult> UpdateCategory(
+        Guid id,
+        [FromBody] CategoryUpdateOptions options,
+        ICategoryManager categoryManager)
     {
-        return await db.Categories.AsNoTracking()
-            .FirstOrDefaultAsync(model => model.CategoryId == categoryid) is Category model
-            ? TypedResults.Ok(model)
-            : TypedResults.NotFound();
+        var category = await categoryManager.GetByIdAsync(id);
+        if (category == null)
+        {
+            return CreateNotFoundProblemDetail(id);
+        }
+
+        await categoryManager.UpdateAsync(category, options);
+        return TypedResults.Ok(category);
     }
 
-    private static async Task<Results<Ok, NotFound>> UpdateCategory(Guid categoryid, Category category,
-        ScribeContext db)
+    public static async Task<IResult> CreateCategory(
+        [FromBody] CategoryCreateOptions options,
+        ICategoryManager categoryManager)
     {
-        var affected = await db.Categories.Where(model => model.CategoryId == categoryid)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(m => m.CategoryId, category.CategoryId)
-                .SetProperty(m => m.Name, category.Name)
-                .SetProperty(m => m.Slug, category.Slug));
-        return affected == 1 ? TypedResults.Ok() : TypedResults.NotFound();
+        var createdCategory = await categoryManager.CreateAsync(options);
+        return TypedResults.Ok(createdCategory);
     }
 
-    private static async Task<Created<Category>> CreateCategory(Category category, ScribeContext db)
+    public static async Task<IResult> DeleteCategory(
+        Guid id,
+        ICategoryManager categoryManager)
     {
-        db.Categories.Add(category);
-        await db.SaveChangesAsync();
-        return TypedResults.Created($"/api/Category/{category.CategoryId}", category);
+        var category = await categoryManager.GetByIdAsync(id);
+        if (category == null)
+        {
+            return CreateNotFoundProblemDetail(id);
+        }
+
+        await categoryManager.DeleteAsync(category);
+        return TypedResults.Ok();
+    }
+
+    private static NotFound<ProblemDetails> CreateNotFoundProblemDetail(Guid id)
+    {
+        return TypedResults.NotFound(new ProblemDetails { Detail = $"Category with id {id} not found." });
     }
 }

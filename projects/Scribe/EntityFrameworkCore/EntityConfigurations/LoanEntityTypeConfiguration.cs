@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Scribe.EntityFrameworkCore.Stores;
+using Scribe.EntityFrameworkCore.ValueConverters;
 
 namespace Scribe.EntityFrameworkCore.EntityConfigurations;
 
@@ -11,30 +12,28 @@ public class LoanEntityTypeConfiguration : IEntityTypeConfiguration<Loan>
     {
         builder.HasKey(l => l.LoanId);
 
-        builder.Property(l => l.Status)
-            .IsRequired()
-            .HasConversion<string>();
-
-        builder.Property(l => l.SubmissionDate)
-            .IsRequired();
-
-        builder.Property(l => l.ProcessingDate)
-            .IsRequired(false);
-
-        builder.HasOne<ScribeUser>()
+        builder.HasOne(l => l.Book)
             .WithMany()
-            .HasForeignKey(l => l.BorrowerId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired();
+            .HasForeignKey(l => l.BookId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<ScribeUser>()
-            .WithMany()
-            .HasForeignKey(l => l.ActorId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(false);
+        builder.HasOne(l => l.Applicant)
+            .WithMany(u => u.Loans)
+            .HasForeignKey(l => l.ApplicantId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(l => l.Books)
-            .WithMany()
-            .UsingEntity<LoanItem>();
+        builder.HasOne(l => l.LoanApplication)
+            .WithMany(u => u.LendingItems)
+            .HasForeignKey(l => l.LoanApplicationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(l => l.LoanDate)
+            .HasConversion(new DateTimeOffsetToUtcDateTimeTicksConverter());
+
+        builder.Property(l => l.DueDate)
+            .HasConversion(new DateTimeOffsetToUtcDateTimeTicksConverter());
+
+        builder.Property(l => l.ReturnDate)
+            .HasConversion(new DateTimeOffsetToUtcDateTimeTicksConverter());
     }
 }

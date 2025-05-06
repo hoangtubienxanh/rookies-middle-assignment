@@ -3,7 +3,6 @@
 public enum LoanStatus
 {
     Open = 0,
-    Cancelled = 1,
-    Approved = 2,
-    Denied = 3
+    Approved = 1,
+    Denied = 2
 }

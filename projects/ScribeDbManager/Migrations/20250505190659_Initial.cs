@@ -111,28 +111,28 @@ namespace ScribeDbManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Loans",
+                name: "LoanApplications",
                 columns: table => new
                 {
-                    LoanId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LoanApplicationId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Status = table.Column<string>(type: "TEXT", nullable: false),
-                    SubmissionDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    ProcessingDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    BorrowerId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ApplicationDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    DecisionDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    ApplicantId = table.Column<Guid>(type: "TEXT", nullable: false),
                     ActorId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Loans", x => x.LoanId);
+                    table.PrimaryKey("PK_LoanApplications", x => x.LoanApplicationId);
                     table.ForeignKey(
-                        name: "FK_Loans_AspNetUsers_ActorId",
+                        name: "FK_LoanApplications_AspNetUsers_ActorId",
                         column: x => x.ActorId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Loans_AspNetUsers_BorrowerId",
-                        column: x => x.BorrowerId,
+                        name: "FK_LoanApplications_AspNetUsers_ApplicantId",
+                        column: x => x.ApplicantId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -146,9 +146,7 @@ namespace ScribeDbManager.Migrations
                     Title = table.Column<string>(type: "TEXT", maxLength: -1, nullable: false),
                     Author = table.Column<string>(type: "TEXT", maxLength: -1, nullable: false),
                     Quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    Archived = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CategoryId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    Version = table.Column<Guid>(type: "TEXT", nullable: false)
+                    CategoryId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -162,28 +160,100 @@ namespace ScribeDbManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LoansToBooksJoinTable",
+                name: "ApplicationItem",
                 columns: table => new
                 {
-                    LoanId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LoanApplicationId = table.Column<Guid>(type: "TEXT", nullable: false),
                     BookId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LoansToBooksJoinTable", x => new { x.BookId, x.LoanId });
                     table.ForeignKey(
-                        name: "FK_LoansToBooksJoinTable_Books_BookId",
+                        name: "FK_ApplicationItem_Books_BookId",
                         column: x => x.BookId,
                         principalTable: "Books",
                         principalColumn: "BookId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_LoansToBooksJoinTable_Loans_LoanId",
-                        column: x => x.LoanId,
-                        principalTable: "Loans",
-                        principalColumn: "LoanId",
+                        name: "FK_ApplicationItem_LoanApplications_LoanApplicationId",
+                        column: x => x.LoanApplicationId,
+                        principalTable: "LoanApplications",
+                        principalColumn: "LoanApplicationId",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "Loans",
+                columns: table => new
+                {
+                    LoanId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LoanDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    DueDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ReturnDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    BookId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ApplicantId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LoanApplicationId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Loans", x => x.LoanId);
+                    table.ForeignKey(
+                        name: "FK_Loans_AspNetUsers_ApplicantId",
+                        column: x => x.ApplicantId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Loans_Books_BookId",
+                        column: x => x.BookId,
+                        principalTable: "Books",
+                        principalColumn: "BookId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Loans_LoanApplications_LoanApplicationId",
+                        column: x => x.LoanApplicationId,
+                        principalTable: "LoanApplications",
+                        principalColumn: "LoanApplicationId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    BookId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Recommended = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Comment = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    ReviewDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    ScribeUserId = table.Column<Guid>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reviews_AspNetUsers_ScribeUserId",
+                        column: x => x.ScribeUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Reviews_Books_BookId",
+                        column: x => x.BookId,
+                        principalTable: "Books",
+                        principalColumn: "BookId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationItem_BookId",
+                table: "ApplicationItem",
+                column: "BookId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationItem_LoanApplicationId",
+                table: "ApplicationItem",
+                column: "LoanApplicationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
@@ -218,24 +288,48 @@ namespace ScribeDbManager.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Loans_ActorId",
-                table: "Loans",
+                name: "IX_LoanApplications_ActorId",
+                table: "LoanApplications",
                 column: "ActorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Loans_BorrowerId",
-                table: "Loans",
-                column: "BorrowerId");
+                name: "IX_LoanApplications_ApplicantId",
+                table: "LoanApplications",
+                column: "ApplicantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LoansToBooksJoinTable_LoanId",
-                table: "LoansToBooksJoinTable",
-                column: "LoanId");
+                name: "IX_Loans_ApplicantId",
+                table: "Loans",
+                column: "ApplicantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Loans_BookId",
+                table: "Loans",
+                column: "BookId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Loans_LoanApplicationId",
+                table: "Loans",
+                column: "LoanApplicationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_BookId_UserId",
+                table: "Reviews",
+                columns: new[] { "BookId", "UserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ScribeUserId",
+                table: "Reviews",
+                column: "ScribeUserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ApplicationItem");
+
             migrationBuilder.DropTable(
                 name: "AspNetUserClaims");
 
@@ -246,19 +340,22 @@ namespace ScribeDbManager.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "LoansToBooksJoinTable");
+                name: "Loans");
+
+            migrationBuilder.DropTable(
+                name: "Reviews");
+
+            migrationBuilder.DropTable(
+                name: "LoanApplications");
 
             migrationBuilder.DropTable(
                 name: "Books");
 
             migrationBuilder.DropTable(
-                name: "Loans");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Categories");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUsers");
         }
     }
 }

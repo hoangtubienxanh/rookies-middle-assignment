@@ -2,17 +2,18 @@
 
 public class Loan
 {
-    // Skip navigation
-    public List<LoanItem> LoanItems = [];
     public Guid LoanId { get; private init; }
-    public LoanStatus Status { get; set; } = LoanStatus.Open;
-    public DateTimeOffset SubmissionDate { get; set; }
-    public DateTimeOffset? ProcessingDate { get; set; }
+    public DateTimeOffset LoanDate { get; set; }
+    public DateTimeOffset DueDate { get; set; }
+    public DateTimeOffset? ReturnDate { get; set; }
 
-    // Reference navigation to principal
-    public Guid BorrowerId { get; set; }
-    public Guid? ActorId { get; private init; }
+    // Foreign key property
+    public required Guid BookId { get; set; }
+    public required Guid ApplicantId { get; set; }
+    public required Guid LoanApplicationId { get; set; }
 
-    // Collection navigation containing principal
-    public List<Book> Books { get; } = [];
+    // Reference navigation to principal.
+    public ScribeUser Applicant { get; private init; } = null!;
+    public Book Book { get; private init; } = null!;
+    public LoanApplication LoanApplication { get; private init; } = null!;
 }

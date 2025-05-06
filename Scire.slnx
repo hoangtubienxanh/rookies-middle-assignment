@@ -1,10 +1,8 @@
 ﻿<Solution>
-    <Project Path="projects\Api\Api.csproj" Type="Classic C#"/>
-    <Project Path="projects\AppHost\AppHost.csproj" Type="Classic C#"/>
-    <Project Path="projects\Scribe.FunctionalTests\Scribe.FunctionalTests.csproj" Type="Classic C#"/>
-    <Project Path="projects\Scribe.Tests\Scribe.Tests.csproj" Type="Classic C#"/>
-    <Project Path="projects\ScribeDbManager\ScribeDbManager.csproj" Type="Classic C#"/>
-    <Project Path="projects\Scribe\Scribe.csproj" Type="Classic C#"/>
-    <Project Path="projects\ServiceDefaults\ServiceDefaults.csproj" Type="Classic C#"/>
-    <Project Path="projects\web-ui\web-ui.esproj" Type="{54A90642-561A-4BB1-A94E-469ADEE60C69}"/>
+  <Project Path="projects\Api\Api.csproj" Type="Classic C#" />
+  <Project Path="projects\AppHost\AppHost.csproj" Type="Classic C#" />
+  <Project Path="projects\Scribe.Tests\Scribe.Tests.csproj" Type="Classic C#" />
+  <Project Path="projects\ScribeDbManager\ScribeDbManager.csproj" Type="Classic C#" />
+  <Project Path="projects\Scribe\Scribe.csproj" Type="Classic C#" />
+  <Project Path="projects\ServiceDefaults\ServiceDefaults.csproj" Type="Classic C#" />
 </Solution>
