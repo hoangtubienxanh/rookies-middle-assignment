@@ -2,7 +2,7 @@
 
 public class LoanApplication
 {
-    public Guid LoanApplicationId { get; private init; }
+    public Guid LoanApplicationId { get; set; }
     public LoanStatus Status { get; set; }
     public DateTimeOffset ApplicationDate { get; set; }
     public DateTimeOffset? DecisionDate { get; set; }
