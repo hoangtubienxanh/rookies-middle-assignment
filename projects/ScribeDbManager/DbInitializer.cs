@@ -89,14 +89,14 @@ internal class DbInitializer(IServiceProvider serviceProvider, ILogger<DbInitial
         var userManager =
             new UserManager<ScribeUser>(userOnlyStore, null, passwordHasher, null, null, null, null, null, null);
 
-        if (!dbContext.Users.Any(u => u.UserName == "admin@scribe.app.local"))
+        if (!dbContext.Users.Any(u => u.UserName == "admin@scribe.local"))
         {
             var adminUser = new ScribeUser
             {
-                UserName = "admin@scribe.app.local", Email = "admin@scribe.app.local", EmailConfirmed = true
+                UserName = "admin@scribe.local", Email = "admin@scribe.local", EmailConfirmed = true
             };
 
-            var result = await userManager.CreateAsync(adminUser, "$$$myVery0wnPassword");
+            var result = await userManager.CreateAsync(adminUser, "weakPassword");
             if (result.Succeeded)
             {
                 await userManager.AddClaimAsync(adminUser, new Claim(ClaimTypes.Role, "administrator"));

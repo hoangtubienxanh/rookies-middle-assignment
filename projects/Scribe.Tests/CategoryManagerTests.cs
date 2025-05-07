@@ -1,8 +1,8 @@
-using Api.Models;
 using Api.Models.Category;
 using Api.Services;
+
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
+
 using Scribe.EntityFrameworkCore;
 using Scribe.EntityFrameworkCore.Stores;
 
@@ -11,9 +11,6 @@ namespace Scribe.Tests;
 [TestFixture]
 public class CategoryManagerTests
 {
-    private ScribeContext _dbContext;
-    private CategoryManager _categoryManager;
-
     [SetUp]
     public void SetUp()
     {
@@ -32,14 +29,14 @@ public class CategoryManagerTests
         _dbContext.Dispose();
     }
 
+    private ScribeContext _dbContext;
+    private CategoryManager _categoryManager;
+
     [Test]
     public async Task CreateAsync_ShouldCreateCategory_WhenValidOptionsProvided()
     {
         // Arrange
-        var options = new CategoryCreateOptions
-        {
-            Name = "Test Category"
-        };
+        var options = new CategoryCreateOptions { Name = "Test Category" };
 
         // Act
         var category = await _categoryManager.CreateAsync(options);
@@ -58,10 +55,7 @@ public class CategoryManagerTests
         _dbContext.Categories.Add(category);
         await _dbContext.SaveChangesAsync();
 
-        var options = new CategoryUpdateOptions
-        {
-            Name = "Updated Name"
-        };
+        var options = new CategoryUpdateOptions { Name = "Updated Name" };
 
         // Act
         var updatedCategory = await _categoryManager.UpdateAsync(category, options);
@@ -85,7 +79,7 @@ public class CategoryManagerTests
         var deletedCategory = await _dbContext.Categories.FindAsync(category.CategoryId);
         Assert.That(deletedCategory, Is.Null);
     }
-    
+
     [Test]
     public async Task GetByIdAsync_ShouldReturnCategory_WhenExists()
     {
@@ -123,11 +117,7 @@ public class CategoryManagerTests
         await _dbContext.Categories.AddRangeAsync(categories);
         await _dbContext.SaveChangesAsync();
 
-        var options = new CategoryListOptions
-        {
-            PageIndex = 0,
-            PageSize = 10
-        };
+        var options = new CategoryListOptions { PageIndex = 0, PageSize = 10 };
 
         // Act
         var result = await _categoryManager.GetAllAsync(options);

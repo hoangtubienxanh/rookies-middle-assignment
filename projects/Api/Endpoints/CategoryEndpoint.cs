@@ -40,7 +40,7 @@ public static class CategoryEndpoint
     }
 
     public static async Task<Ok<PaginatedItems<Category>>> GetAllCategories(
-        [FromBody] CategoryListOptions options,
+        [AsParameters] CategoryListOptions options,
         [FromServices] ICategoryManager categoryManager)
     {
         var categories = await categoryManager.GetAllAsync(options);
@@ -57,7 +57,7 @@ public static class CategoryEndpoint
 
     public static async Task<IResult> UpdateCategory(
         Guid id,
-        [FromBody] CategoryUpdateOptions options,
+        [AsParameters] CategoryUpdateOptions options,
         ICategoryManager categoryManager)
     {
         var category = await categoryManager.GetByIdAsync(id);
@@ -71,7 +71,7 @@ public static class CategoryEndpoint
     }
 
     public static async Task<IResult> CreateCategory(
-        [FromBody] CategoryCreateOptions options,
+        [AsParameters] CategoryCreateOptions options,
         ICategoryManager categoryManager)
     {
         var createdCategory = await categoryManager.CreateAsync(options);

@@ -24,9 +24,9 @@
         <ProjectReference Include="..\Scribe\Scribe.csproj"/>
         <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj"/>
     </ItemGroup>
-    
+
     <ItemGroup>
-        <InternalsVisibleTo Include="Scribe.Tests" />
+        <InternalsVisibleTo Include="Scribe.Tests"/>
     </ItemGroup>
 
 </Project>

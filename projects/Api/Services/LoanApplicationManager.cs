@@ -22,11 +22,14 @@ public class LoanApplicationManager(TimeProvider timeProvider, ScribeContext con
         }
 
         var now = timeProvider.GetUtcNow();
-        var approvedApplicationsThisMonth = await context.LoanApplications
+        var collection = await context.LoanApplications
             .Where(la => la.ApplicantId == applicantId)
             .Where(la => la.Status == LoanStatus.Approved || la.Status == LoanStatus.Open)
-            .Where(la => la.ApplicationDate.Year == now.Year && la.ApplicationDate.Month == now.Month)
-            .CountAsync();
+            .ToListAsync();
+
+        // TODO: client evaluated fix due to sqlite provider not handling datetimeoffset comparasion
+        var approvedApplicationsThisMonth = collection
+            .Count(la => la.ApplicationDate.Year == now.Year && la.ApplicationDate.Month == now.Month);
 
         if (approvedApplicationsThisMonth >= MaxProcessingApplicationPerMonth)
         {
@@ -118,7 +121,7 @@ public class LoanApplicationManager(TimeProvider timeProvider, ScribeContext con
 
         var loanApplications = await query
             .OrderBy(la => la.LoanApplicationId)
-            .Skip((options.PageIndex - 1) * options.PageSize)
+            .Skip(options.PageIndex * options.PageSize)
             .Take(options.PageSize)
             .Select(la => la.AsLoanApplicationItem())
             .ToListAsync();

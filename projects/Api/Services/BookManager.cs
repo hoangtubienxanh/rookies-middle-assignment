@@ -89,17 +89,17 @@ public class BookManager(TimeProvider timeProvider, ScribeContext context) : IBo
             .OrderBy(b => b.BookId)
             .Skip(options.PageIndex * options.PageSize)
             .Take(options.PageSize)
-            .Select(b => new BookItem { Id = b.BookId, Title = b.Title, Author = b.Author, CategoryId = b.CategoryId })
             .ToListAsync();
 
-        return new PaginatedItems<BookItem>(options.PageIndex, options.PageSize, totalBooks, bookItems);
+        return new PaginatedItems<BookItem>(options.PageIndex, options.PageSize, totalBooks,
+            bookItems.Select(b => b.AsBookItem()));
     }
 
     public async Task<BookItem?> GetBookAsync(Guid id)
     {
-        var bookItem = await context.Books.Where(b => b.BookId == id)
-            .Select(b => new BookItem { Id = b.BookId, Title = b.Title, Author = b.Author, CategoryId = b.CategoryId })
+        var book = await context.Books.Where(b => b.BookId == id)
+            .Include(b => b.Category)
             .FirstOrDefaultAsync();
-        return bookItem;
+        return book?.AsBookItem();
     }
 }

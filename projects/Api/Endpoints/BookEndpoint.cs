@@ -41,7 +41,7 @@ public static class BookEndpoint
     }
 
     public static async Task<Ok<PaginatedItems<BookItem>>> GetAllBooks(
-        [FromBody] BookListOptions options,
+        [AsParameters] BookListOptions options,
         [FromServices] IBookManager manager)
     {
         var bookItems = await manager.GetAllBooksAsync(options);
@@ -58,7 +58,7 @@ public static class BookEndpoint
 
     public static async Task<Results<Ok<BookItem>, NotFound<ProblemDetails>>> UpdateBook(
         [FromRoute] Guid id,
-        [FromBody] BookUpdateOptions options,
+        [AsParameters] BookUpdateOptions options,
         [FromServices] TimeProvider timeProvider,
         [FromServices] ScribeContext context,
         [FromServices] IBookManager manager)

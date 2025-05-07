@@ -22,9 +22,10 @@ var api = builder.AddProject<Api>("scribe-api")
 
 var web = builder
     .AddViteApp("scribe-web", packageManager: "pnpm", workingDirectory: Path.Combine(new web_ui().ProjectPath, "../"))
+    .WithEnvironment("NEXT_PUBLIC_API_URL", api.GetEndpoint("http"))
     .WithReference(api);
 
-web.WithPnpmPackageInstallation();
+// web.WithPnpmPackageInstallation();
 
 // https://github.com/dotnet/aspire-samples/blob/8f25954f2ec7aee9c08ad42b7baf293d6cea7540/samples/AspireWithNode/AspireWithNode.AppHost/Program.cs
 // var launchProfile = builder.Configuration["DOTNET_LAUNCH_PROFILE"];

@@ -23,7 +23,7 @@ public static class LoanEndpoint
 
         group.MapGet("/", GetAllLoanApplications)
             .WithName("GetAllLoanApplications");
-        
+
         group.MapGet("/{id:guid}", GetLoanApplicationById)
             .RequireAuthorization("applicant_creator", "all_access")
             .WithName("GetLoanApplicationById");
@@ -51,7 +51,7 @@ public static class LoanEndpoint
     }
 
     public static async Task<Results<Ok<LoanApplicationItem>, BadRequest<ProblemDetails>>> CreateLoanApplication(
-        [FromBody] LoanApplicationCreateOptions options,
+        [AsParameters] LoanApplicationCreateOptions options,
         [FromServices] CurrentUser me,
         [FromServices] ScribeContext context,
         [FromServices] ILoanApplicationManager applicationManager)
@@ -69,7 +69,7 @@ public static class LoanEndpoint
 
     public static async Task<Results<Ok<LoanApplicationItem>, NotFound<ProblemDetails>, BadRequest<ProblemDetails>>>
         UpdateLoanApplication(
-            [FromBody] LoanApplicationUpdateOptions options,
+            [AsParameters] LoanApplicationUpdateOptions options,
             [FromRoute] Guid id,
             [FromServices] CurrentUser me,
             [FromServices] ScribeContext context,
@@ -99,7 +99,7 @@ public static class LoanEndpoint
     }
 
     public static async Task<Ok<PaginatedItems<LoanApplicationItem>>> GetAllLoanApplications(
-        [FromBody] LoanApplicationListOptions options,
+        [AsParameters] LoanApplicationListOptions options,
         [FromServices] ILoanApplicationManager loanManager)
     {
         var loans = await loanManager.GetAllAsync(options);

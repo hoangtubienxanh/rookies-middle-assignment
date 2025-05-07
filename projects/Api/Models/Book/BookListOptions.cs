@@ -1,7 +1,16 @@
-﻿namespace Api.Models.Book;
+﻿using System.ComponentModel;
+
+using Microsoft.AspNetCore.Mvc;
+
+namespace Api.Models.Book;
 
 public record BookListOptions
 {
-    public int PageIndex { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    [FromQuery(Name = "pageIndex")]
+    [DefaultValue(0)]
+    public int PageIndex { get; init; }
+
+    [FromQuery(Name = "pageSize")]
+    [DefaultValue(10)]
+    public int PageSize { get; init; }
 }

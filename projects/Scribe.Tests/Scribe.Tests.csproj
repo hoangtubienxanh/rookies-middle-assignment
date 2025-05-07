@@ -27,7 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="EndpointTests\" />
+        <Folder Include="EndpointTests\"/>
     </ItemGroup>
 
 </Project>

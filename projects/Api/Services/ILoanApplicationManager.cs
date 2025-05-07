@@ -11,5 +11,7 @@ public interface ILoanApplicationManager
     public Task<LoanApplication> ApproveAsync(Guid actorId, LoanApplication loanApplication);
     public Task<LoanApplication> DenyAsync(Guid actorId, LoanApplication loanApplication);
     public Task<PaginatedItems<LoanApplicationItem>> GetAllAsync(LoanApplicationListOptions options);
-    public Task<PaginatedItems<LoanApplicationItem>> GetAllByApplicantAsync(Guid applicantId, LoanStatus status, LoanApplicationListOptions options);
+
+    public Task<PaginatedItems<LoanApplicationItem>> GetAllByApplicantAsync(Guid applicantId, LoanStatus status,
+        LoanApplicationListOptions options);
 }

@@ -1,7 +1,8 @@
-using Api.Models.Book;
+﻿using Api.Models.Book;
 using Api.Services;
+
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
+
 using Scribe.EntityFrameworkCore;
 using Scribe.EntityFrameworkCore.Stores;
 
@@ -10,10 +11,6 @@ namespace Scribe.Tests;
 [TestFixture]
 public class BookManagerTests
 {
-    private ScribeContext _dbContext;
-    private BookManager _bookManager;
-    private TimeProvider _timeProvider;
-
     [SetUp]
     public void SetUp()
     {
@@ -33,16 +30,17 @@ public class BookManagerTests
         _dbContext.Dispose();
     }
 
+    private ScribeContext _dbContext;
+    private BookManager _bookManager;
+    private TimeProvider _timeProvider;
+
     [Test]
     public async Task CreateAsync_ShouldCreateBook_WhenValidOptionsProvided()
     {
         // Arrange
         var options = new BookCreateOptions
         {
-            Title = "Test Book",
-            Author = "Test Author",
-            InputQuantity = 5,
-            CategoryId = Guid.NewGuid()
+            Title = "Test Book", Author = "Test Author", InputQuantity = 5, CategoryId = Guid.NewGuid()
         };
 
         // Act
@@ -64,21 +62,13 @@ public class BookManagerTests
     public async Task UpdateAsync_ShouldUpdateBook_WhenValidOptionsProvided()
     {
         // Arrange
-        var book = new Book
-        {
-            Title = "Original Title",
-            Author = "Original Author",
-            Quantity = 10
-        };
+        var book = new Book { Title = "Original Title", Author = "Original Author", Quantity = 10 };
         _dbContext.Books.Add(book);
         await _dbContext.SaveChangesAsync();
 
         var options = new BookUpdateOptions
         {
-            Title = "Updated Title",
-            Author = "Updated Author",
-            InputQuantity = 15,
-            CategoryId = Guid.NewGuid()
+            Title = "Updated Title", Author = "Updated Author", InputQuantity = 15, CategoryId = Guid.NewGuid()
         };
 
         // Act
@@ -98,12 +88,7 @@ public class BookManagerTests
     public async Task UpdateAsync_ShouldThrowException_WhenQuantityLessThanLendingQuantity()
     {
         // Arrange
-        var book = new Book
-        {
-            Title = "Test Book",
-            Author = "Test Author",
-            Quantity = 10
-        };
+        var book = new Book { Title = "Test Book", Author = "Test Author", Quantity = 10 };
         _dbContext.Books.Add(book);
 
         var loan = new Loan
@@ -119,10 +104,7 @@ public class BookManagerTests
 
         var options = new BookUpdateOptions
         {
-            Title = "Updated Title",
-            Author = "Updated Author",
-            InputQuantity = 0,
-            CategoryId = null
+            Title = "Updated Title", Author = "Updated Author", InputQuantity = 0, CategoryId = null
         };
 
         // Act & Assert
@@ -134,12 +116,7 @@ public class BookManagerTests
     public async Task DeleteAsync_ShouldDeleteBook_WhenNoActiveLoans()
     {
         // Arrange
-        var book = new Book
-        {
-            Title = "Test Book",
-            Author = "Test Author",
-            Quantity = 5
-        };
+        var book = new Book { Title = "Test Book", Author = "Test Author", Quantity = 5 };
         _dbContext.Books.Add(book);
         await _dbContext.SaveChangesAsync();
 
@@ -157,18 +134,12 @@ public class BookManagerTests
         // Arrange
         var books = Enumerable.Range(1, 15).Select(i => new Book
         {
-            Title = $"Book {i}",
-            Author = $"Author {i}",
-            Quantity = i
+            Title = $"Book {i}", Author = $"Author {i}", Quantity = i
         }).ToList();
         await _dbContext.Books.AddRangeAsync(books);
         await _dbContext.SaveChangesAsync();
 
-        var options = new BookListOptions
-        {
-            PageIndex = 0,
-            PageSize = 10
-        };
+        var options = new BookListOptions { PageIndex = 0, PageSize = 10 };
 
         // Act
         var result = await _bookManager.GetAllBooksAsync(options);
@@ -185,12 +156,7 @@ public class BookManagerTests
     public async Task GetBookAsync_ShouldReturnBook_WhenExists()
     {
         // Arrange
-        var book = new Book
-        {
-            Title = "Test Book",
-            Author = "Test Author",
-            Quantity = 5
-        };
+        var book = new Book { Title = "Test Book", Author = "Test Author", Quantity = 5 };
         _dbContext.Books.Add(book);
         await _dbContext.SaveChangesAsync();
 
@@ -221,12 +187,7 @@ public class BookManagerTests
     public async Task IncludeLendingQuantity_ShouldSetZero_WhenNoActiveLoans()
     {
         // Arrange
-        var book = new Book
-        {
-            Title = "Test Book",
-            Author = "Test Author",
-            Quantity = 5
-        };
+        var book = new Book { Title = "Test Book", Author = "Test Author", Quantity = 5 };
         _dbContext.Books.Add(book);
         await _dbContext.SaveChangesAsync();
 
@@ -241,12 +202,7 @@ public class BookManagerTests
     public async Task IncludeLendingQuantity_ShouldCountActiveLoans()
     {
         // Arrange
-        var book = new Book
-        {
-            Title = "Test Book",
-            Author = "Test Author",
-            Quantity = 5
-        };
+        var book = new Book { Title = "Test Book", Author = "Test Author", Quantity = 5 };
         _dbContext.Books.Add(book);
 
         var loans = Enumerable.Range(1, 3).Select(_ => new Loan
@@ -257,7 +213,7 @@ public class BookManagerTests
             LoanDate = _timeProvider.GetUtcNow(),
             DueDate = _timeProvider.GetUtcNow().AddDays(14)
         }).ToList();
-        
+
         await _dbContext.Loans.AddRangeAsync(loans);
         await _dbContext.SaveChangesAsync();
 
@@ -274,9 +230,7 @@ public class BookManagerTests
         // Arrange
         var books = Enumerable.Range(1, 3).Select(i => new Book
         {
-            Title = $"Book {i}",
-            Author = $"Author {i}",
-            Quantity = 5
+            Title = $"Book {i}", Author = $"Author {i}", Quantity = 5
         }).ToList();
         await _dbContext.Books.AddRangeAsync(books);
 
@@ -308,7 +262,7 @@ public class BookManagerTests
                 DueDate = _timeProvider.GetUtcNow().AddDays(14)
             }
         };
-        
+
         await _dbContext.Loans.AddRangeAsync(loans);
         await _dbContext.SaveChangesAsync();
 
@@ -328,12 +282,7 @@ public class BookManagerTests
     public async Task DeleteAsync_ShouldThrowException_WhenBookHasActiveLoans()
     {
         // Arrange
-        var book = new Book
-        {
-            Title = "Test Book",
-            Author = "Test Author",
-            Quantity = 5
-        };
+        var book = new Book { Title = "Test Book", Author = "Test Author", Quantity = 5 };
         _dbContext.Books.Add(book);
 
         var loan = new Loan
